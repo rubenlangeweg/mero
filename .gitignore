@@ -1,0 +1,25 @@
+# Private configuration, credentials and signing identities
+/.local/
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Generated builds, device captures, backups and personal release archives
+/output/
+/launcher/build/
+/launcher/build-*/
+*.apk
+*.idsig
+
+# Local tooling
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.DS_Store

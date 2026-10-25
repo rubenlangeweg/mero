@@ -1,0 +1,40 @@
+{
+  "artists": [
+    {
+      "id": "van_gogh",
+      "name": "Vincent van Gogh",
+      "works": [
+        {
+          "id": "wheat_field_with_cypresses",
+          "title": "Wheat Field with Cypresses",
+          "year": "1889",
+          "image": "van_gogh_wheat_field",
+          "source": "https://www.metmuseum.org/art/collection/search/436535",
+          "license": "CC0-1.0"
+        },
+        {
+          "id": "women_picking_olives",
+          "title": "Women Picking Olives",
+          "year": "1889",
+          "image": "van_gogh_olive_pickers",
+          "source": "https://www.metmuseum.org/art/collection/search/436536",
+          "license": "CC0-1.0"
+        }
+      ]
+    },
+    {
+      "id": "hokusai",
+      "name": "Katsushika Hokusai",
+      "works": [
+        {
+          "id": "great_wave",
+          "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji (Fugaku sanjūrokkei)",
+          "year": "ca. 1830–32",
+          "image": "hokusai_great_wave",
+          "source": "https://www.metmuseum.org/art/collection/search/45434",
+          "license": "CC0-1.0"
+        }
+      ]
+    }
+  ]
+}

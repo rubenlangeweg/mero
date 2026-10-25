@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Artwork library · Mero</title>
+  <style>
+    :root { --paper:#fff; --sidebar:#f3f4f6; --ink:#202124; --muted:#5d626a; --line:#dfe2e6; --focus:#315f86; --danger:#a52d36; --glass:rgba(255,255,255,.86); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); background:var(--paper); font-synthesis:none; -webkit-font-smoothing:antialiased; }
+    * { box-sizing:border-box; } [hidden] { display:none !important; } body { margin:0; min-width:320px; }
+    button,input,select { font:inherit; outline-offset:3px; } button,select { -webkit-tap-highlight-color:transparent; }
+    button,.button { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:44px; padding:10px 14px; border:1px solid var(--line); border-radius:11px; background:var(--paper); color:var(--ink); font-size:14px; font-weight:500; line-height:1.3; text-decoration:none; cursor:pointer; }
+    button:hover:not(:disabled),.button:hover { background:#f3f5f7; } button:disabled,select:disabled,.button[aria-disabled="true"] { opacity:.5; cursor:default; }
+    button.primary { background:var(--ink); border-color:var(--ink); color:#fff; } button.primary:hover:not(:disabled) { background:#3b3e43; }
+    button.quiet { background:transparent; border-color:transparent; } button.danger { color:var(--danger); } button.primary.danger { background:var(--danger); color:#fff; border-color:var(--danger); }
+    :focus-visible { outline:2px solid var(--focus); }
+    input[type="text"],input[type="search"],select { width:100%; min-height:44px; padding:10px 11px; border:1px solid #ccd1d8; border-radius:8px; background:#fff; color:var(--ink); font-size:15px; }
+    input::placeholder { color:#6b7078; } input[type="checkbox"] { width:19px; height:19px; margin:0; accent-color:var(--ink); flex:none; }
+    input[type="range"] { width:100%; min-height:36px; accent-color:var(--ink); touch-action:pan-y; }
+    p { margin:0; line-height:1.55; } h1,h2,h3 { margin:0; text-wrap:balance; } .muted { color:var(--muted); }
+    .app-header { position:sticky; top:0; z-index:3; display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:76px; padding:15px 28px; background:var(--glass); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:baseline; gap:15px; flex-wrap:wrap; } .brand strong { font-size:17px; letter-spacing:-.4px; font-weight:650; } .brand span { color:var(--muted); font-size:14px; }
+    .header-actions { display:flex; align-items:center; gap:10px; } .connection { color:var(--muted); font-size:12px; max-width:200px; text-align:right; } .connection.offline { color:var(--danger); }
+    .pair-page { min-height:calc(100svh - 76px); display:grid; place-items:center; padding:44px 20px 90px; } .pair-sheet { width:min(100%,370px); }
+    .pair-sheet h1 { font-size:29px; font-weight:550; letter-spacing:-.9px; margin-bottom:12px; } .pair-sheet>p { color:var(--muted); font-size:15px; margin-bottom:30px; }
+    .pair-sheet label { display:block; font-size:13px; font-weight:550; margin-bottom:9px; } #pair-code { min-height:57px; font-size:25px; font-weight:450; letter-spacing:5px; text-align:center; border-radius:11px; }
+    #pair-form>button { width:100%; margin-top:12px; min-height:46px; } .pair-note { margin-top:24px; color:var(--muted); font-size:12px; }
+    .pair-error,.field-error { color:var(--danger); font-size:13px; line-height:1.5; margin-top:10px; }
+    .layout { display:grid; grid-template-columns:220px minmax(0,1fr); min-height:calc(100svh - 76px); }
+    .sidebar { padding:27px 15px; background:var(--sidebar); border-right:1px solid var(--line); } .sidebar-heading { padding:0 10px 14px; }
+    .sidebar-heading h2 { font-size:13px; font-weight:600; color:var(--muted); } .folder-list { display:flex; flex-direction:column; gap:4px; }
+    .folder { justify-content:space-between; gap:12px; width:100%; text-align:left; padding:12px; min-height:47px; border-color:transparent; background:transparent; border-radius:10px; }
+    .folder:hover:not(:disabled) { background:#e8ebef; } .folder[aria-current="true"] { background:#fff; border-color:#d8dde3; }
+    .folder-name { min-width:0; overflow-wrap:anywhere; font-size:14px; } .folder-count { font-size:12px; color:var(--muted); font-weight:400; flex:none; }
+    .add-artist { width:100%; margin-top:14px; background:rgba(255,255,255,.7); } .sidebar-note { margin:28px 10px 0; max-width:24ch; font-size:12px; line-height:1.6; color:var(--muted); }
+    .main { min-width:0; padding:28px 32px 50px; } .now-playing { display:flex; align-items:center; gap:18px; padding-bottom:24px; margin-bottom:27px; border-bottom:1px solid var(--line); }
+    .now-image { width:112px; aspect-ratio:16/9; object-fit:cover; background:#15171b; border-radius:6px; flex:none; }
+    .now-copy { flex:1; min-width:0; } .now-label { font-size:12px; color:var(--muted); margin-bottom:4px; } .now-title { font-size:16px; font-weight:550; line-height:1.35; overflow-wrap:anywhere; }
+    .now-detail { font-size:12px; color:var(--muted); margin-top:5px; } .playback-controls { display:flex; gap:5px; flex-wrap:wrap; } .playback-controls button { padding:9px 11px; font-size:13px; }
+    .collection-header { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:20px; } .collection-header h1 { font-size:28px; line-height:1.25; font-weight:550; letter-spacing:-.8px; overflow-wrap:anywhere; }
+    .collection-header p { margin-top:6px; font-size:13px; color:var(--muted); } .collection-actions { display:flex; gap:2px; flex:none; }
+    .library-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:20px; } .library-tools { display:flex; align-items:center; gap:6px; flex-wrap:wrap; } #search { max-width:260px; }
+    .status { font-size:13px; color:var(--muted); min-height:21px; margin:0 0 14px; } .status.error { color:var(--danger); } .connection-notice { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 15px; background:#f3f5f8; border-radius:10px; margin-bottom:20px; font-size:13px; }
+    .dropzone { display:flex; align-items:center; justify-content:space-between; gap:18px; border:1px dashed #b6bfca; border-radius:12px; padding:18px 20px; background:#fafbfc; margin-bottom:25px; }
+    .dropzone.dragging { border:2px solid var(--focus); padding:17px 19px; background:#f0f5fa; } .dropzone p { font-size:14px; font-weight:500; } .dropzone small { display:block; color:var(--muted); font-size:12px; line-height:1.5; margin-top:3px; }
+    .dropzone button { flex:none; } .upload-panel { margin:-7px 0 25px; padding:14px 16px; background:var(--sidebar); border-radius:10px; }
+    .upload-panel p { font-size:13px; } .upload-panel progress { display:block; width:100%; height:5px; margin:10px 0 3px; accent-color:var(--ink); }
+    .upload-results { display:flex; flex-direction:column; gap:4px; list-style:none; padding:0; margin:8px 0 0; font-size:12px; color:var(--muted); overflow-wrap:anywhere; } .upload-results .failed { color:var(--danger); }
+    .art-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:27px 22px; align-items:start; }
+    .artwork { min-width:0; } .art-open { display:block; text-align:left; width:100%; padding:0; border:0; border-radius:7px; background:transparent; font-weight:400; }
+    .art-open:hover:not(:disabled) { background:transparent; } .art-image { position:relative; display:block; width:100%; aspect-ratio:16/9; background:#15171b; border-radius:6px; overflow:hidden; }
+    .art-image img { display:block; width:100%; height:100%; object-fit:cover; } .image-failed { position:absolute; inset:0; display:grid; place-items:center; padding:20px; text-align:center; color:#fff; font-size:13px; line-height:1.5; }
+    .art-caption { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; padding:12px 0 2px; } .art-title { display:block; font-size:14px; font-weight:550; overflow-wrap:anywhere; } .art-year { display:block; margin-top:4px; color:var(--muted); font-size:12px; }
+    .badge { font-size:11px; line-height:1.5; color:var(--muted); white-space:nowrap; padding:3px 7px; border:1px solid var(--line); border-radius:20px; } .badge.selected { color:#31583e; border-color:#cbded1; background:#f3f8f4; } .draft-badge { display:block; font-size:12px; color:#825b15; margin-top:5px; }
+    .empty { padding:43px 24px 48px; text-align:center; border:1px solid var(--line); border-radius:12px; } .empty h2 { font-size:19px; font-weight:500; } .empty p { max-width:43ch; margin:10px auto 22px; color:var(--muted); font-size:14px; }
+    .uploading .folder,.uploading #add-artist,.uploading #rename-artist,.uploading #delete-artist,.uploading .art-open { pointer-events:none; opacity:.55; }
+    dialog { width:min(430px,calc(100% - 32px)); max-height:calc(100svh - 32px); overflow:auto; border:0; border-radius:16px; padding:25px; color:var(--ink); background:#fff; box-shadow:0 10px 55px rgba(0,0,0,.18); }
+    dialog::backdrop { background:rgba(24,29,35,.35); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); } dialog h2 { font-size:21px; font-weight:550; letter-spacing:-.4px; margin-bottom:12px; }
+    dialog p { color:var(--muted); font-size:14px; margin-bottom:18px; } dialog label { display:block; font-size:13px; margin-bottom:7px; } .dialog-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:23px; flex-wrap:wrap; }
+    .editor { width:min(960px,calc(100% - 32px)); padding:24px; } .editor-heading { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:17px; } .editor-heading h2 { margin:0; }
+    .editor-layout { display:grid; grid-template-columns:minmax(0,1fr) 260px; gap:24px; align-items:start; } .preview-label { font-size:12px; color:var(--muted); margin-bottom:8px; }
+    .tv-preview { position:relative; aspect-ratio:16/9; background:#101114; overflow:hidden; border-radius:7px; touch-action:none; user-select:none; }
+    .tv-preview img { display:block; width:100%; height:100%; object-fit:cover; pointer-events:none; } .tv-preview.fill { cursor:grab; } .tv-preview.fill:active { cursor:grabbing; }
+    .preview-overlay { position:absolute; color:#fff; background:rgba(20,23,27,.64); border:1px solid rgba(255,255,255,.25); border-radius:5px; font-size:clamp(6px,.8vw,10px); line-height:1.35; padding:3px 5px; pointer-events:none; }
+    .preview-clock { right:4%; top:4.3%; } .preview-caption { left:4%; bottom:4%; max-width:24%; } .preview-caption span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .preview-dock { left:50%; bottom:4%; transform:translateX(-50%); width:25%; text-align:center; border-radius:20px; white-space:nowrap; padding:3px; }
+    .editor .preview-note { margin:9px 0 18px; font-size:12px; } .editor-fields { display:flex; flex-direction:column; gap:15px; } .field-pair { display:grid; grid-template-columns:minmax(0,1fr) 86px; gap:10px; }
+    .editor .check-row,.check-row { display:flex; align-items:center; gap:10px; min-height:44px; margin:0; line-height:1.4; cursor:pointer; }
+    .range-label { display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--muted); } .range-label output { min-width:3ch; text-align:right; }
+    .editor-save-state { font-size:12px !important; margin:0 !important; } .editor-bottom { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:20px; }
+    .editor-primary { display:flex; gap:8px; } .settings-fields { display:flex; flex-direction:column; gap:19px; } .settings-fields label { margin-bottom:8px; } .settings-fields small { display:block; color:var(--muted); font-size:12px; line-height:1.5; margin-top:7px; }
+    .backup-actions { display:flex; gap:8px; flex-wrap:wrap; padding-top:20px; margin-top:20px; border-top:1px solid var(--line); } .settings-dialog .backup-note { margin:10px 0 0; font-size:12px; }
+    @media(min-width:1500px) { .main { padding-left:48px; padding-right:48px; } .art-grid { grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:30px; } }
+    @media(max-width:1000px) { .now-playing { flex-wrap:wrap; } .now-copy { flex-basis:180px; } .playback-controls { margin-left:130px; } .collection-header { flex-wrap:wrap; gap:8px; } .editor-layout { grid-template-columns:minmax(0,1fr); } .editor-fields { display:grid; grid-template-columns:1fr 1fr; gap:18px; } .preview-overlay { font-size:10px; } }
+    @media(max-width:700px) { .app-header { padding:12px 18px; min-height:72px; } .brand { flex-direction:column; gap:3px; } .brand strong { font-size:16px; } .brand span { font-size:12px; }
+      .header-actions { gap:3px; } .header-actions button { padding:9px; font-size:12px; } .connection { max-width:115px; font-size:11px; }
+      .layout { display:block; } .sidebar { padding:18px 18px 15px; border-right:0; border-bottom:1px solid var(--line); } .sidebar-heading { padding:0 0 10px; } .sidebar-note { display:none; }
+      .folder-list { flex-direction:row; overflow-x:auto; gap:7px; padding:3px 2px 7px; } .folder { width:auto; min-width:100px; max-width:240px; padding:10px 12px; gap:11px; min-height:44px; } .folder-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .add-artist { margin-top:8px; width:auto; font-size:13px; } .main { padding:23px 18px 40px; } .now-playing { gap:12px; margin-bottom:23px; padding-bottom:20px; } .now-image { width:90px; }
+      .playback-controls { width:100%; margin:0; } .playback-controls button { flex:1; } .collection-header h1 { font-size:25px; } .collection-actions { margin-left:-12px; } .collection-actions button { font-size:13px; }
+      .library-toolbar { align-items:stretch; gap:10px; } #search { max-width:none; } .library-tools { justify-content:space-between; width:100%; } .library-tools button { font-size:13px; }
+      .dropzone { padding:15px; gap:13px; } .dropzone.dragging { padding:14px; } .dropzone p { font-size:13px; } .dropzone small { font-size:11px; max-width:24ch; } .dropzone button { font-size:13px; padding:10px; }
+      .art-grid { grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:25px; } .editor { width:calc(100% - 20px); padding:18px; max-height:calc(100svh - 20px); } .editor-fields { display:flex; gap:15px; }
+      .editor-heading h2 { font-size:20px; } .editor-bottom { align-items:stretch; flex-direction:column-reverse; } .editor-primary button { flex:1; } .editor-bottom>.danger { align-self:flex-start; }
+      input[type="text"],input[type="search"],select { font-size:16px; } .preview-overlay { font-size:7px; } .preview-dock { width:28%; } dialog { padding:22px; } .connection-notice { align-items:flex-start; }
+    }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; animation:none !important; transition:none !important; } }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand"><strong>Mero</strong><span>Artwork library</span></div>
+    <div class="header-actions" id="session-actions" hidden><span class="connection" id="connection">Checking connection…</span><button id="disconnect" class="quiet" type="button">Disconnect</button></div>
+  </header>
+  <section class="pair-page" id="pair-page" aria-labelledby="pair-heading">
+    <div class="pair-sheet">
+      <h1 id="pair-heading">Your art, on the TV.</h1><p>Open Artwork → Manage library on your TV, then enter the code shown there.</p>
+      <form id="pair-form"><label for="pair-code">TV pairing code</label><input id="pair-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" minlength="8" maxlength="11" placeholder="1234 5678" aria-describedby="pair-error pair-note" required><button class="primary" id="pair-button" type="submit">Connect to TV</button><p class="pair-error" id="pair-error" role="alert" hidden></p></form>
+      <p class="pair-note" id="pair-note">Keep Mero open while managing your library. The connection is available only on your home network.</p>
+    </div>
+  </section>
+  <div class="layout" id="library-page" hidden>
+    <aside class="sidebar" aria-label="Artist folders"><div class="sidebar-heading"><h2>Artist folders</h2></div><nav class="folder-list" id="folders" aria-label="Choose an artist"></nav><button class="add-artist" id="add-artist" type="button">+ New artist folder</button><p class="sidebar-note">Your library lives on the TV. Save a backup before removing the app or clearing its data.</p></aside>
+    <main class="main">
+      <section class="now-playing" aria-label="TV playback"><img class="now-image" id="now-image" alt="" hidden><div class="now-copy"><p class="now-label">Now showing on your TV</p><p class="now-title" id="now-title">Checking the TV…</p><p class="now-detail" id="now-detail"></p></div><div class="playback-controls"><button id="previous" type="button" aria-label="Previous artwork">← Previous</button><button id="pause" type="button">Pause rotation</button><button id="next" type="button" aria-label="Next artwork">Next →</button></div></section>
+      <div class="connection-notice" id="connection-notice" hidden><p id="connection-copy"></p><button id="reload" type="button">Retry</button></div>
+      <div class="collection-header"><div><h1 id="artist-heading">Artwork library</h1><p id="artist-summary"></p></div><div class="collection-actions" id="collection-actions" hidden><button id="rename-artist" class="quiet" type="button">Rename</button><button id="delete-artist" class="quiet danger" type="button">Delete folder</button></div></div>
+      <div class="library-toolbar"><input id="search" type="search" placeholder="Find artwork in this folder" aria-label="Find artwork in this folder"><div class="library-tools"><button id="undo" type="button" hidden>Undo last deletion</button><button id="tv-settings" type="button">TV settings & backup</button></div></div>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+      <section class="dropzone" id="dropzone" aria-label="Add artwork" hidden><div><p>Drop artwork into this folder</p><small>JPEG, PNG or WebP. Up to 16 MB per image.</small></div><button id="choose-images" type="button">Choose images</button><input type="file" id="files" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" multiple hidden></section>
+      <section class="upload-panel" id="upload-panel" aria-label="Upload progress" hidden><p id="upload-status" aria-live="polite"></p><progress id="upload-progress" value="0" max="1" aria-label="Images uploaded"></progress><ul class="upload-results" id="upload-results"></ul></section>
+      <div class="art-grid" id="artworks"></div>
+      <section class="empty" id="empty" hidden><h2 id="empty-heading">This folder is ready for art.</h2><p id="empty-copy"></p><button id="empty-upload" class="primary" type="button">Choose images</button></section>
+    </main>
+  </div>
+  <dialog id="editor" class="editor" aria-labelledby="editor-heading">
+    <form id="editor-form">
+      <div class="editor-heading"><h2 id="editor-heading">Artwork details</h2><button id="editor-close" class="quiet" type="button" aria-label="Close artwork editor">Done</button></div>
+      <div class="editor-layout">
+        <div><div class="preview-label">16:9 TV framing</div><div class="tv-preview" id="tv-preview"><img id="preview-image" alt="Artwork framing preview" draggable="false"><div class="preview-overlay preview-clock" aria-hidden="true">12:34<br>Room · Outside</div><div class="preview-overlay preview-caption" aria-hidden="true"><span id="preview-artist"></span><span id="preview-title"></span><span id="preview-year"></span></div><div class="preview-overlay preview-dock" aria-hidden="true">Stremio · NordVPN · Apps</div></div><p class="preview-note">Control positions are shown for context. Drag to position a Fill image, or use the sliders. Framing uses the copy stored on your TV.</p><p id="preview-error" class="field-error" role="alert" hidden></p></div>
+        <div class="editor-fields">
+          <div><label for="edit-title">Title</label><input id="edit-title" type="text" maxlength="150" required></div>
+          <div><label for="edit-year">Year</label><input id="edit-year" type="text" maxlength="32" placeholder="Unknown"></div>
+          <label class="check-row"><input id="edit-enabled" type="checkbox">Include in rotation</label>
+          <div><label for="edit-fit">Display</label><select id="edit-fit"><option value="fill">Fill screen</option><option value="fit">Fit whole artwork</option></select></div>
+          <div id="framing-controls"><label class="range-label" for="edit-x"><span>Horizontal position</span><output id="x-value" for="edit-x">50%</output></label><input id="edit-x" type="range" min="0" max="100" step="0.1" value="50"><label class="range-label" for="edit-y"><span>Vertical position</span><output id="y-value" for="edit-y">50%</output></label><input id="edit-y" type="range" min="0" max="100" step="0.1" value="50"><button id="reset-framing" class="quiet" type="button">Centre image</button></div>
+          <p id="editor-save-state" class="editor-save-state" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+      <p class="field-error" id="editor-error" role="alert" hidden></p>
+      <div class="editor-bottom"><button id="editor-delete" class="quiet danger" type="button">Delete artwork</button><div class="editor-primary"><button id="editor-save" type="submit">Save changes</button><button id="editor-show" class="primary" type="button">Show on TV</button></div></div>
+    </form>
+  </dialog>
+  <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-heading">
+    <form id="settings-form"><h2 id="settings-heading">TV settings</h2><p>These settings apply to the whole artwork library.</p><div class="settings-fields"><div><label for="rotation">Change artwork every</label><select id="rotation"><option value="5">5 minutes</option><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">1 hour</option><option value="120">2 hours</option></select><small>The countdown runs while Mero is visible.</small></div><div><label class="check-row"><input id="art-mode" type="checkbox">Art mode after 1 minute</label><small>Hide the clock, temperatures, caption and dock when idle. Press the remote once to bring them back. The TV can still sleep normally.</small></div></div><p class="field-error" id="settings-error" role="alert" hidden></p><div class="dialog-actions"><button id="settings-close" type="button">Close</button><button id="settings-save" class="primary" type="submit">Save settings</button></div></form>
+    <div class="backup-actions"><button id="backup" type="button">Download backup</button><button id="restore" type="button">Restore backup…</button><input id="backup-file" type="file" accept="application/zip,.zip" hidden></div><p class="backup-note">Backups contain artwork images, captions and library settings. Your Home Assistant credentials are excluded.</p><p id="backup-status" class="status" role="status" aria-live="polite"></p>
+  </dialog>
+  <dialog id="artist-dialog" aria-labelledby="artist-dialog-heading"><form id="artist-form"><h2 id="artist-dialog-heading">New artist folder</h2><p>Use the artist’s name. It will also appear beside their work on your TV.</p><label for="artist-name">Artist name</label><input id="artist-name" type="text" maxlength="150" autocomplete="off" required><p class="field-error" id="artist-error" role="alert" hidden></p><div class="dialog-actions"><button id="artist-cancel" type="button">Cancel</button><button id="artist-save" class="primary" type="submit">Create folder</button></div></form></dialog>
+  <dialog id="confirm-dialog" aria-labelledby="confirm-heading"><h2 id="confirm-heading">Delete artwork?</h2><p id="confirm-copy"></p><div class="dialog-actions"><button id="confirm-cancel" type="button">Cancel</button><button id="confirm-delete" class="primary danger" type="button">Delete artwork</button></div></dialog>
+  <script>
+    'use strict';
+    const $ = id => document.getElementById(id);
+    const DRAFT_KEY = 'mero-artwork-drafts-v2';
+    const state = { library:null, artistId:null, drafts:new Map(), uploading:false, artistMode:'create', connected:false, paired:false, editor:null, editorBusy:false, playback:null, playbackAt:0, session:null, sessionAt:0, polling:false, playingBusy:false, draftStorage:true };
+    class PairingRequired extends Error {}
+    function setMessage(node,message,error=false) { node.textContent=message; node.hidden=!message; node.classList.toggle('error',error); }
+    function status(message,error=false) { setMessage($('status'),message,error); }
+    function currentArtist() { return state.library && state.library.artists.find(artist=>artist.id===state.artistId); }
+    function artistPath(id) { return '/api/artists/'+encodeURIComponent(id); }
+    function workPath(artistId,workId) { return artistPath(artistId)+'/works/'+encodeURIComponent(workId); }
+    function workKey(artistId,workId) { return artistId+'/'+workId; }
+    function imagePath(artistId,workId) { return '/api/images/'+encodeURIComponent(artistId)+'/'+encodeURIComponent(workId); }
+    function values(work) { return { title:work.title||'',year:work.year||'',enabled:!!work.enabled,fit:work.fit==='fit'?'fit':'fill',focusX:Number.isFinite(work.focusX)?Math.min(1,Math.max(0,work.focusX)):.5,focusY:Number.isFinite(work.focusY)?Math.min(1,Math.max(0,work.focusY)):.5 }; }
+    function equal(a,b) { return a.title===b.title && a.year===b.year && a.enabled===b.enabled && a.fit===b.fit && Math.abs(a.focusX-b.focusX)<.0001 && Math.abs(a.focusY-b.focusY)<.0001; }
+    function persistDrafts() { try { localStorage.setItem(DRAFT_KEY,JSON.stringify(Array.from(state.drafts))); } catch(error) { state.draftStorage=false; } }
+    try { const saved=JSON.parse(localStorage.getItem(DRAFT_KEY)||'[]'); if(Array.isArray(saved)) for(const item of saved.slice(0,200)) if(Array.isArray(item)&&typeof item[0]==='string'&&item[0].length<170&&item[1]&&typeof item[1].title==='string'&&typeof item[1].year==='string') state.drafts.set(item[0],values(item[1])); } catch(error) { state.draftStorage=false; }
+    function element(tag,className,text) { const node=document.createElement(tag); if(className) node.className=className; if(text!==undefined) node.textContent=text; return node; }
+    function connection(ok) {
+      state.connected=ok;
+      $('connection').classList.toggle('offline',!ok);
+      $('connection').textContent=ok?'Connected to TV':'TV unreachable';
+      if(!ok&&state.paired) { $('connection-copy').textContent='Cannot reach the TV. Keep Mero open. Your unfinished edits are kept on this device.'; $('reload').textContent='Retry'; $('connection-notice').hidden=false; }
+      syncControls(); updateSessionLabel();
+    }
+    function syncControls() {
+      const blocked=!state.connected||state.uploading;
+      for(const id of ['previous','next','pause']) $(id).disabled=blocked||state.playingBusy||!state.playback;
+      for(const id of ['undo','backup','restore','settings-save','choose-images','empty-upload','add-artist','rename-artist','delete-artist']) $(id).disabled=blocked;
+      $('files').disabled=blocked; $('disconnect').disabled=state.uploading;
+      if(state.editor) { $('editor-show').disabled=blocked||state.editorBusy; $('editor-delete').disabled=blocked||state.editorBusy; const entry=editorEntry(); $('editor-save').disabled=blocked||state.editorBusy||!entry||equal(editorValues(),values(entry.work)); }
+    }
+    function showPairing(message) {
+      state.paired=false; connection(false);
+      $('session-actions').hidden=true; $('library-page').hidden=true; $('pair-page').hidden=false;
+      for(const id of ['editor','artist-dialog','settings-dialog','confirm-dialog']) if($(id).open) $(id).close();
+      setMessage($('pair-error'),message||'',true);
+      $('pair-note').textContent=state.drafts.size?'Your unsaved artwork details are kept on this device. Reopen Manage library on the TV if sharing has ended.':'Keep Mero open while managing your library. The connection is available only on your home network.';
+    }
+    async function api(path,options={}) {
+      const method=options.method||'GET'; const headers={Accept:'application/json'}; let body;
+      if(method!=='GET') { headers['X-Mero-Request']='1'; if(options.raw) { headers['Content-Type']=options.contentType||options.body.type||'application/octet-stream'; body=options.body; } else { headers['Content-Type']='application/json'; body=JSON.stringify(options.body||{}); } }
+      const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),options.timeout||25000);
+      try {
+        let response;
+        try { response=await fetch(path,{method,headers,body,credentials:'same-origin',cache:'no-store',signal:controller.signal}); }
+        catch(error) { connection(false); throw new Error('Cannot reach the TV. Keep Mero open, then try again.'); }
+        let data={}; try { data=await response.json(); } catch(error) { if(response.ok) throw new Error('The TV returned an incomplete response. Try again.'); }
+        if(response.status===401&&!options.pairing) { showPairing(state.library?'Your connection ended. Enter the code on the TV to reconnect.':''); throw new PairingRequired('Pair with the TV again to continue.'); }
+        if(!response.ok) throw new Error(typeof data.error==='string'?data.error:'The TV could not save this change. Try again.');
+        if(!options.pairing) connection(true);
+        return data;
+      } finally { clearTimeout(timer); }
+    }
+    function updateSummary(artist) { const count=artist.works.length; const selected=artist.works.filter(work=>work.enabled).length; $('artist-summary').textContent=count?count+(count===1?' artwork':' artworks')+' · '+selected+' in rotation':'No artworks yet'; }
+    function renderFolders() {
+      const fragment=document.createDocumentFragment();
+      for(const artist of state.library.artists) { const button=element('button','folder'); button.type='button'; button.setAttribute('aria-current',artist.id===state.artistId?'true':'false'); button.append(element('span','folder-name',artist.name),element('span','folder-count',String(artist.works.length))); button.addEventListener('click',()=>{ if(state.uploading)return; state.artistId=artist.id; $('search').value=''; status(''); renderLibrary(); }); fragment.append(button); }
+      $('folders').replaceChildren(fragment);
+    }
+    function frame(image,work) { const value=values(work); image.style.objectFit=value.fit==='fit'?'contain':'cover'; image.style.objectPosition=(value.focusX*100)+'% '+(value.focusY*100)+'%'; }
+    function renderWork(artist,work) {
+      const draft=state.drafts.get(workKey(artist.id,work.id)); const value=draft||values(work);
+      const card=element('article','artwork'); const button=element('button','art-open'); button.type='button'; button.setAttribute('aria-label','Edit '+value.title+(value.year?', '+value.year:''));
+      const picture=element('span','art-image'); const image=element('img'); image.alt=value.title+' by '+artist.name; image.loading='lazy'; image.decoding='async'; image.src=imagePath(artist.id,work.id); frame(image,value);
+      image.addEventListener('error',()=>{ image.hidden=true; picture.append(element('span','image-failed','Image unavailable. Reconnect and reload if sharing has ended.')); },{once:true}); picture.append(image);
+      const caption=element('span','art-caption'); const details=element('span'); details.append(element('span','art-title',value.title),element('span','art-year',value.year||'Year unknown')); if(draft) details.append(element('span','draft-badge','Unsaved changes'));
+      caption.append(details,element('span','badge'+(work.enabled?' selected':''),work.enabled?'In rotation':'Excluded')); button.append(picture,caption); button.addEventListener('click',()=>openEditor(artist.id,work.id)); card.append(button); return card;
+    }
+    function renderLibrary() {
+      if(!state.library)return; renderFolders(); const artist=currentArtist(); const content=document.createDocumentFragment(); const query=$('search').value.trim().toLocaleLowerCase();
+      $('collection-actions').hidden=!artist; $('dropzone').hidden=!artist; $('search').hidden=!artist||!artist.works.length;
+      const works=artist?artist.works.filter(work=>{const value=state.drafts.get(workKey(artist.id,work.id))||work; return (value.title+' '+value.year).toLocaleLowerCase().includes(query);}):[];
+      $('empty').hidden=works.length>0;
+      if(artist) { $('artist-heading').textContent=artist.name; updateSummary(artist); for(const work of works)content.append(renderWork(artist,work)); $('empty-heading').textContent=query?'No matching artworks.':'This folder is ready for art.'; $('empty-copy').textContent=query?'Try a different title or year.':'Choose images, then open an artwork to edit its title, year and TV framing.'; $('empty-upload').textContent='Choose images'; $('empty-upload').hidden=!!query; }
+      else { $('artist-heading').textContent='Artwork library'; $('artist-summary').textContent=''; $('empty-heading').textContent='Start with an artist.'; $('empty-copy').textContent='Create an artist folder, then add the works you want to see on your TV.'; $('empty-upload').textContent='New artist folder'; $('empty-upload').hidden=false; }
+      $('artworks').replaceChildren(content); $('undo').hidden=!state.library.canUndo; syncControls();
+    }
+    async function loadLibrary() {
+      const library=await api('/api/library'); if(state.library&&Number(library.revision)<Number(state.library.revision))return;
+      state.library=library; if(!library.artists.some(artist=>artist.id===state.artistId))state.artistId=library.artists[0]?library.artists[0].id:null;
+      const existing=new Set(); for(const artist of library.artists)for(const work of artist.works){ const key=workKey(artist.id,work.id); existing.add(key); if(state.drafts.has(key)&&equal(state.drafts.get(key),values(work)))state.drafts.delete(key); }
+      for(const key of state.drafts.keys())if(!existing.has(key))state.drafts.delete(key); persistDrafts();
+      state.paired=true; $('pair-page').hidden=true; $('library-page').hidden=false; $('session-actions').hidden=false; $('connection-notice').hidden=true; renderLibrary();
+      if(library.warning)status(library.warning,true);
+    }
+    function editorEntry() { if(!state.editor||!state.library)return null; const artist=state.library.artists.find(item=>item.id===state.editor.artistId); const work=artist&&artist.works.find(item=>item.id===state.editor.workId); return work?{artist,work}:null; }
+    function editorValues() { return {title:$('edit-title').value,year:$('edit-year').value,enabled:$('edit-enabled').checked,fit:$('edit-fit').value,focusX:Number($('edit-x').value)/100,focusY:Number($('edit-y').value)/100}; }
+    function rememberEditor() {
+      const entry=editorEntry(); if(!entry)return; const value=editorValues(); const key=workKey(entry.artist.id,entry.work.id); const dirty=!equal(value,values(entry.work)); if(dirty)state.drafts.set(key,value);else state.drafts.delete(key); persistDrafts();
+      $('editor-save-state').textContent=dirty?(state.draftStorage?'Unsaved changes · kept on this device':'Unsaved changes · keep this page open'):'Saved on TV';
+      frame($('preview-image'),value); $('tv-preview').classList.toggle('fill',value.fit==='fill'); $('framing-controls').hidden=value.fit==='fit'; $('preview-title').textContent=value.title||'Untitled'; $('preview-year').textContent=value.year; $('preview-year').hidden=!value.year; $('x-value').textContent=Math.round(value.focusX*100)+'%'; $('y-value').textContent=Math.round(value.focusY*100)+'%'; syncControls();
+    }
+    function openEditor(artistId,workId) {
+      if(state.uploading)return; state.editor={artistId,workId}; const entry=editorEntry(); if(!entry)return; const draft=state.drafts.get(workKey(artistId,workId))||values(entry.work);
+      $('edit-title').value=draft.title; $('edit-year').value=draft.year; $('edit-enabled').checked=draft.enabled; $('edit-fit').value=draft.fit; $('edit-x').value=String(draft.focusX*100); $('edit-y').value=String(draft.focusY*100);
+      $('preview-image').src=imagePath(artistId,workId); $('preview-image').alt=entry.work.title+' by '+entry.artist.name; $('preview-artist').textContent=entry.artist.name; setMessage($('editor-error'),''); setMessage($('preview-error'),''); rememberEditor(); $('editor').showModal(); $('editor-close').focus();
+    }
+    async function saveEditor(display=false) {
+      const entry=editorEntry(); if(!entry||state.editorBusy||state.uploading||!state.connected)return; if(!$('editor-form').reportValidity())return;
+      const value=editorValues(); value.title=value.title.trim(); value.year=value.year.trim(); if(!value.title){setMessage($('editor-error'),'Enter a title before saving.',true);$('edit-title').focus();return;}
+      const key=workKey(entry.artist.id,entry.work.id); state.editorBusy=true; const controls=Array.from($('editor-form').querySelectorAll('button,input,select')); controls.forEach(node=>node.disabled=true); setMessage($('editor-error'),''); $('editor-save-state').textContent='Saving…';
+      try { if(!equal(value,values(entry.work))) { await api(workPath(entry.artist.id,entry.work.id),{method:'PATCH',body:value}); state.drafts.delete(key); persistDrafts(); $('edit-title').value=value.title; $('edit-year').value=value.year; await loadLibrary(); } if(display)await playbackCommand({action:'show',artistId:entry.artist.id,workId:entry.work.id}); status(display?'Artwork is now showing on TV.':'Artwork details saved.'); }
+      catch(error) { if(!(error instanceof PairingRequired))setMessage($('editor-error'),error.message,true); }
+      finally { state.editorBusy=false; controls.forEach(node=>node.disabled=false); if(state.editor)rememberEditor(); syncControls(); }
+    }
+    function secondsLabel(ms) { const seconds=Math.max(0,Math.ceil(ms/1000)); const minutes=Math.floor(seconds/60); return minutes+':'+String(seconds%60).padStart(2,'0'); }
+    function renderPlayback() {
+      const playback=state.playback; if(!playback)return; const artwork=playback.background==='artwork'||playback.background==='artist'||!!playback.workId;
+      $('now-title').textContent=artwork?(playback.title||'Artwork'):(playback.background==='custom'?'Custom background':'Plain background');
+      const elapsed=state.connected&&!playback.paused?Date.now()-state.playbackAt:0; const remaining=Math.max(0,(Number(playback.remainingMs)||0)-elapsed);
+      const info=[artwork?(playback.artist||''):'']; if(playback.year)info.push(playback.year); info.push(!state.connected?'TV connection unavailable':playback.paused?'Rotation paused':playback.rotating===false?'Rotation idle':'Next in '+secondsLabel(remaining)); $('now-detail').textContent=info.filter(Boolean).join(' · ');
+      $('pause').textContent=playback.paused?'Resume rotation':'Pause rotation';
+      const showImage=artwork&&playback.artistId&&playback.workId; $('now-image').hidden=!showImage; if(showImage){const src=imagePath(playback.artistId,playback.workId);if($('now-image').getAttribute('src')!==src)$('now-image').src=src; const artist=state.library&&state.library.artists.find(item=>item.id===playback.artistId); const work=artist&&artist.works.find(item=>item.id===playback.workId); if(work)frame($('now-image'),work);}
+      syncControls();
+    }
+    function updateSessionLabel() {
+      if(!state.connected||!state.session)return; const elapsed=Date.now()-state.sessionAt; const share=Math.max(0,(Number(state.session.sharingRemainingMs)||0)-elapsed); const idle=Math.max(0,(Number(state.session.sessionRemainingMs)||0)-elapsed); const minutes=Math.max(1,Math.ceil(Math.min(share,idle)/60000)); $('connection').textContent='Connected · '+minutes+' min left';
+    }
+    async function refreshPlayback() {
+      if(!state.paired||state.polling||document.hidden)return; state.polling=true;
+      try { const [session,playback]=await Promise.all([api('/api/status'),api('/api/playback')]); if(!state.paired)return; state.session=session; state.sessionAt=Date.now(); state.playback=playback; state.playbackAt=Date.now(); connection(true); renderPlayback();
+        if(state.library&&Number(session.libraryRevision)!==Number(state.library.revision)) { $('connection-copy').textContent='The library changed on the TV. Reload to see the latest version. Your unsaved edits will be kept.'; $('reload').textContent='Reload library'; $('connection-notice').hidden=false; } else $('connection-notice').hidden=true;
+      } catch(error) { if(!(error instanceof PairingRequired))connection(false); }
+      finally { state.polling=false; }
+    }
+    async function playbackCommand(body) { const playback=await api('/api/playback',{method:'POST',body}); state.playback=playback; state.playbackAt=Date.now(); renderPlayback(); return playback; }
+    async function controlPlayback(action) { if(state.playingBusy||state.uploading||!state.connected)return; state.playingBusy=true; syncControls(); try { await playbackCommand({action}); } catch(error){if(!(error instanceof PairingRequired))status(error.message,true);}finally{state.playingBusy=false;syncControls();} }
+    function openArtistDialog(mode) { if(state.uploading)return; const artist=currentArtist(); if(mode==='rename'&&!artist)return; state.artistMode=mode; $('artist-dialog-heading').textContent=mode==='rename'?'Rename artist folder':'New artist folder'; $('artist-save').textContent=mode==='rename'?'Save name':'Create folder'; $('artist-name').value=mode==='rename'?artist.name:''; setMessage($('artist-error'),''); $('artist-dialog').showModal(); $('artist-name').focus(); }
+    function confirmAction(heading,copy,label) {
+      $('confirm-heading').textContent=heading; $('confirm-copy').textContent=copy; $('confirm-delete').textContent=label; const dialog=$('confirm-dialog');
+      return new Promise(resolve=>{let settled=false;const finish=value=>{if(settled)return;settled=true;$('confirm-delete').removeEventListener('click',yes);$('confirm-cancel').removeEventListener('click',no);dialog.removeEventListener('cancel',cancel);dialog.removeEventListener('close',closed);dialog.close();resolve(value);};const yes=()=>finish(true);const no=()=>finish(false);const cancel=event=>{event.preventDefault();finish(false);};const closed=()=>finish(false);$('confirm-delete').addEventListener('click',yes);$('confirm-cancel').addEventListener('click',no);dialog.addEventListener('cancel',cancel);dialog.addEventListener('close',closed);dialog.showModal();$('confirm-cancel').focus();});
+    }
+    function confirmDelete(heading,copy,label) { return confirmAction(heading,copy,label); }
+    function fileDetails(file) {
+      let title = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
+      const dated = title.match(/^(.*?)\s+(?:\()?([12][0-9]{3})(?:\))?$/);
+      let year = '';
+      if (dated && dated[1].trim()) { title = dated[1].replace(/[,\s]+$/, '').trim(); year = dated[2]; }
+      return { title: (title || 'Untitled').slice(0, 150), year };
+    }
+    async function uploadFiles(files) {
+      const artist = currentArtist();
+      if (!artist || state.uploading || !state.connected || !files.length) return;
+      state.uploading = true;
+      syncControls();
+      document.body.classList.add('uploading');
+      $('files').disabled = true;
+      $('choose-images').disabled = true;
+      $('empty-upload').disabled = true;
+      $('rotation').disabled = true;
+      $('upload-panel').hidden = false;
+      $('upload-results').replaceChildren();
+      $('upload-progress').max = files.length;
+      $('upload-progress').value = 0;
+      let uploaded = 0;
+      let failed = 0;
+      let interrupted = false;
+      const report = (file, message, bad) => $('upload-results').append(element('li', bad ? 'failed' : '', file.name + ': ' + message));
+      try {
+        for (let index = 0; index < files.length; index++) {
+          const file = files[index];
+          $('upload-status').textContent = 'Adding image ' + (index + 1) + ' of ' + files.length + ' to ' + artist.name + '…';
+          if (!/\.(jpe?g|png|webp)$/i.test(file.name) && !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            failed++; report(file, 'Choose a JPEG, PNG or WebP image.', true); $('upload-progress').value = index + 1; continue;
+          }
+          if (!file.size || file.size > 16 * 1024 * 1024) {
+            failed++; report(file, file.size ? 'Larger than 16 MB.' : 'This file is empty.', true); $('upload-progress').value = index + 1; continue;
+          }
+          const details = fileDetails(file);
+          const query = new URLSearchParams(details);
+          try {
+            await api(artistPath(artist.id) + '/works?' + query.toString(), { method: 'POST', body: file, raw: true });
+            uploaded++; report(file, 'Added', false);
+          } catch (error) {
+            failed++; report(file, error.message, true);
+            if (error instanceof PairingRequired || error.message.startsWith('Cannot reach the TV.')) { interrupted = true; break; }
+          }
+          $('upload-progress').value = index + 1;
+        }
+        if (state.connected && !interrupted) await loadLibrary();
+      } catch (error) {
+        interrupted = true;
+        if (!(error instanceof PairingRequired)) status(error.message, true);
+      } finally {
+        state.uploading = false;
+        document.body.classList.remove('uploading');
+        $('files').disabled = false;
+        $('choose-images').disabled = false;
+        $('empty-upload').disabled = false;
+        $('rotation').disabled = false;
+        $('files').value = '';
+        const count = uploaded + (uploaded === 1 ? ' image added' : ' images added');
+        $('upload-status').textContent = interrupted
+          ? count + '. The connection ended. Reconnect and check the folder before choosing any remaining files.'
+          : count + (failed ? ', ' + failed + (failed === 1 ? ' image could not be added.' : ' images could not be added.') : '. Add titles and years below.');
+        syncControls();
+        if (!interrupted) status(uploaded ? 'Artwork added to your TV. Open an artwork to check its TV framing.' : 'No images added.', !uploaded);
+      }
+    }
+    $('pair-form').addEventListener('submit',async event=>{
+      event.preventDefault(); const code=$('pair-code').value.replace(/\s/g,''); if(!/^[0-9]{8}$/.test(code)){setMessage($('pair-error'),'Enter the 8-digit code shown on the TV.',true);$('pair-code').focus();return;}
+      $('pair-button').disabled=true; $('pair-button').textContent='Connecting…'; setMessage($('pair-error'),'');
+      try { await api('/api/pair',{method:'POST',body:{code},pairing:true}); $('pair-code').value=''; await loadLibrary(); await refreshPlayback(); status(state.drafts.size?'Your unsaved artwork details have been kept.':''); }
+      catch(error){setMessage($('pair-error'),error.message,true);}finally{$('pair-code').value='';$('pair-button').disabled=false;$('pair-button').textContent='Connect to TV';}
+    });
+    $('disconnect').addEventListener('click',async()=>{if(state.uploading)return;const button=$('disconnect');button.disabled=true;try{await api('/api/logout',{method:'POST'});showPairing('Disconnected. Enter the TV code to connect again.');}catch(error){if(!(error instanceof PairingRequired))status(error.message,true);}finally{button.disabled=false;}});
+    $('reload').addEventListener('click',async()=>{if(state.uploading)return;$('reload').disabled=true;try{await loadLibrary();await refreshPlayback();status(state.drafts.size?'Your unfinished artwork edits are kept.':'Library reloaded.');}catch(error){if(!(error instanceof PairingRequired))status(error.message,true);}finally{$('reload').disabled=false;}});
+    $('search').addEventListener('input',renderLibrary);
+    $('previous').addEventListener('click',()=>controlPlayback('previous')); $('next').addEventListener('click',()=>controlPlayback('next')); $('pause').addEventListener('click',()=>controlPlayback(state.playback&&state.playback.paused?'resume':'pause'));
+    for(const id of ['edit-title','edit-year','edit-x','edit-y'])$(id).addEventListener('input',rememberEditor);
+    $('edit-enabled').addEventListener('change',rememberEditor);
+    $('edit-fit').addEventListener('change',()=>{if($('edit-fit').value==='fit'){$('edit-x').value='50';$('edit-y').value='50';}rememberEditor();});
+    $('reset-framing').addEventListener('click',()=>{$('edit-x').value='50';$('edit-y').value='50';rememberEditor();});
+    $('editor-form').addEventListener('submit',event=>{event.preventDefault();saveEditor(false);}); $('editor-show').addEventListener('click',()=>saveEditor(true));
+    $('editor-close').addEventListener('click',()=>{$('editor').close();});
+    $('editor').addEventListener('cancel',event=>{if(state.editorBusy)event.preventDefault();});
+    $('editor').addEventListener('close',()=>{rememberEditor();state.editor=null;renderLibrary();});
+    $('preview-image').addEventListener('error',()=>setMessage($('preview-error'),'The image could not load. Reconnect and reload the library if sharing has ended.',true));
+    $('preview-image').addEventListener('load',()=>setMessage($('preview-error'),''));
+    let drag=null;
+    $('tv-preview').addEventListener('pointerdown',event=>{
+      if(!state.editor||state.editorBusy||$('edit-fit').value!=='fill'||event.button!==0)return;
+      const image=$('preview-image'); const rect=$('tv-preview').getBoundingClientRect(); if(!image.naturalWidth||!image.naturalHeight)return;
+      const scale=Math.max(rect.width/image.naturalWidth,rect.height/image.naturalHeight); drag={id:event.pointerId,x:event.clientX,y:event.clientY,focusX:Number($('edit-x').value),focusY:Number($('edit-y').value),overflowX:image.naturalWidth*scale-rect.width,overflowY:image.naturalHeight*scale-rect.height}; $('tv-preview').setPointerCapture(event.pointerId); event.preventDefault();
+    });
+    $('tv-preview').addEventListener('pointermove',event=>{if(!drag||event.pointerId!==drag.id)return;if(drag.overflowX>.5)$('edit-x').value=String(Math.max(0,Math.min(100,Math.round(drag.focusX-(event.clientX-drag.x)/drag.overflowX*100))));if(drag.overflowY>.5)$('edit-y').value=String(Math.max(0,Math.min(100,Math.round(drag.focusY-(event.clientY-drag.y)/drag.overflowY*100))));rememberEditor();});
+    for(const eventName of ['pointerup','pointercancel','lostpointercapture'])$('tv-preview').addEventListener(eventName,()=>{drag=null;});
+    $('editor-delete').addEventListener('click',async()=>{
+      const entry=editorEntry(); if(!entry||state.uploading||state.editorBusy)return;
+      if(!await confirmDelete('Delete artwork?','“'+entry.work.title+'” will leave the library. Undo can restore the most recent deletion.','Delete artwork'))return;
+      state.editorBusy=true;syncControls();try{await api(workPath(entry.artist.id,entry.work.id),{method:'DELETE'});state.drafts.delete(workKey(entry.artist.id,entry.work.id));persistDrafts();state.editor=null;$('editor').close();await loadLibrary();status('Artwork deleted. You can undo the most recent deletion.');await refreshPlayback();}catch(error){if(!(error instanceof PairingRequired))setMessage($('editor-error'),error.message,true);}finally{state.editorBusy=false;syncControls();}
+    });
+    $('add-artist').addEventListener('click',()=>openArtistDialog('create')); $('rename-artist').addEventListener('click',()=>openArtistDialog('rename')); $('artist-cancel').addEventListener('click',()=>$('artist-dialog').close());
+    $('artist-form').addEventListener('submit',async event=>{
+      event.preventDefault();const name=$('artist-name').value.trim();if(!name){setMessage($('artist-error'),'Enter the artist’s name.',true);$('artist-name').focus();return;}const button=$('artist-save');button.disabled=true;setMessage($('artist-error'),'');
+      try{if(state.artistMode==='create'){const result=await api('/api/artists',{method:'POST',body:{name}});state.artistId=result.id;}else await api(artistPath(state.artistId),{method:'PATCH',body:{name}});$('artist-dialog').close();await loadLibrary();status(state.artistMode==='create'?'Artist folder created.':'Artist name saved.');}
+      catch(error){if(!(error instanceof PairingRequired))setMessage($('artist-error'),error.message,true);}finally{button.disabled=false;}
+    });
+    $('delete-artist').addEventListener('click',async()=>{
+      const artist=currentArtist();if(!artist||state.uploading)return;const count=artist.works.length;const message='“'+artist.name+'”'+(count?' and its '+count+(count===1?' artwork':' artworks'):'')+' will leave the library. Undo can restore the most recent deletion.';
+      if(!await confirmDelete('Delete artist folder?',message,'Delete folder'))return;const button=$('delete-artist');button.disabled=true;
+      try{await api(artistPath(artist.id),{method:'DELETE'});for(const work of artist.works)state.drafts.delete(workKey(artist.id,work.id));persistDrafts();await loadLibrary();status('Artist folder deleted. You can undo the most recent deletion.');await refreshPlayback();}catch(error){if(!(error instanceof PairingRequired))status(error.message,true);}finally{button.disabled=false;}
+    });
+    $('undo').addEventListener('click',async()=>{if(state.uploading)return;$('undo').disabled=true;try{await api('/api/undo',{method:'POST'});await loadLibrary();status('Deletion undone.');await refreshPlayback();}catch(error){if(!(error instanceof PairingRequired))status(error.message,true);}finally{syncControls();}});
+    $('tv-settings').addEventListener('click',()=>{if(!state.library||state.uploading)return;$('rotation').value=String(state.library.intervalMinutes);$('art-mode').checked=state.library.artModeEnabled!==false;setMessage($('settings-error'),'');setMessage($('backup-status'),'');$('settings-dialog').showModal();$('settings-close').focus();});
+    $('settings-close').addEventListener('click',()=>$('settings-dialog').close());
+    $('settings-dialog').addEventListener('cancel',event=>{if(state.uploading)event.preventDefault();});
+    $('settings-form').addEventListener('submit',async event=>{event.preventDefault();if(state.uploading)return;const button=$('settings-save');button.disabled=true;setMessage($('settings-error'),'');try{await api('/api/settings',{method:'PATCH',body:{intervalMinutes:Number($('rotation').value),artModeEnabled:$('art-mode').checked}});await loadLibrary();status('TV settings saved.');$('settings-dialog').close();await refreshPlayback();}catch(error){if(!(error instanceof PairingRequired))setMessage($('settings-error'),error.message,true);}finally{syncControls();}});
+    $('backup').addEventListener('click',async()=>{
+      if(state.uploading)return;const button=$('backup');button.disabled=true;
+      try{await api('/api/status');const link=element('a');link.href='/api/backup';link.download='mero-artwork-library.zip';document.body.append(link);link.click();link.remove();setMessage($('backup-status'),'Backup download requested. Check your browser’s downloads before closing sharing.');}catch(error){if(!(error instanceof PairingRequired))setMessage($('backup-status'),error.message,true);}finally{syncControls();}
+    });
+    $('restore').addEventListener('click',()=>{if(!state.uploading)$('backup-file').click();});
+    $('backup-file').addEventListener('change',async event=>{
+      const file=event.target.files[0];event.target.value='';if(!file||state.uploading)return;
+      if(!file.size||file.size>269484032){setMessage($('backup-status'),'Choose a Mero library ZIP up to 257 MB.',true);return;}
+      if(!await confirmAction('Replace the TV library?','The backup will replace the current artwork library and its settings. Download a backup first if you want to keep the current collection. Unsaved artwork edits on this device will also be cleared.','Restore library'))return;
+      state.uploading=true;document.body.classList.add('uploading');$('settings-close').disabled=true;syncControls();setMessage($('backup-status'),'Restoring the library… Keep this page and Mero open.');
+      try{await api('/api/restore',{method:'POST',body:file,raw:true,contentType:'application/zip',timeout:240000});state.drafts.clear();persistDrafts();state.artistId=null;await loadLibrary();$('rotation').value=String(state.library.intervalMinutes);$('art-mode').checked=state.library.artModeEnabled!==false;setMessage($('backup-status'),'Library restored.');status('Library restored from backup.');await refreshPlayback();}
+      catch(error){if(!(error instanceof PairingRequired))setMessage($('backup-status'),error.message+' Reload the library before trying another restore.',true);}
+      finally{state.uploading=false;document.body.classList.remove('uploading');$('settings-close').disabled=false;syncControls();}
+    });
+    $('files').addEventListener('change',event=>{if(state.connected)uploadFiles(Array.from(event.target.files));}); $('choose-images').addEventListener('click',()=>$('files').click()); $('empty-upload').addEventListener('click',()=>{if(currentArtist())$('files').click();else openArtistDialog('create');});
+    let dragDepth=0;const dropzone=$('dropzone');dropzone.addEventListener('dragenter',event=>{event.preventDefault();dragDepth++;if(!state.uploading&&state.connected)dropzone.classList.add('dragging');});dropzone.addEventListener('dragover',event=>{event.preventDefault();if(event.dataTransfer)event.dataTransfer.dropEffect=state.uploading||!state.connected?'none':'copy';});dropzone.addEventListener('dragleave',event=>{event.preventDefault();dragDepth=Math.max(0,dragDepth-1);if(!dragDepth)dropzone.classList.remove('dragging');});dropzone.addEventListener('drop',event=>{event.preventDefault();dragDepth=0;dropzone.classList.remove('dragging');if(event.dataTransfer&&state.connected)uploadFiles(Array.from(event.dataTransfer.files));});
+    window.addEventListener('dragover',event=>{if(event.dataTransfer&&Array.from(event.dataTransfer.types).includes('Files'))event.preventDefault();});window.addEventListener('drop',event=>{if(event.dataTransfer&&event.dataTransfer.files.length)event.preventDefault();});
+    window.addEventListener('beforeunload',event=>{if(state.drafts.size||state.uploading){event.preventDefault();event.returnValue='';}});
+    function consumePairingCode(showPrompt=false){if(!window.location.hash)return;const codes=new URLSearchParams(window.location.hash.slice(1)).getAll('code');const valid=codes.length===1&&/^[0-9]{8}$/.test(codes[0]);if(valid)$('pair-code').value=codes[0];window.history.replaceState(window.history.state,'',window.location.pathname+window.location.search);if(valid&&showPrompt)showPairing('');}
+    consumePairingCode();window.addEventListener('hashchange',()=>consumePairingCode(true));document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPlayback();});
+    setInterval(refreshPlayback,8000);setInterval(()=>{renderPlayback();updateSessionLabel();},1000);
+    loadLibrary().then(refreshPlayback).catch(error=>{if(!(error instanceof PairingRequired))showPairing(error.message);});
+  </script>
+</body>
+</html>

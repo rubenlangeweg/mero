@@ -1,0 +1,2 @@
+# Optional Python TV-management tools. Building the APK does not require these.
+adb-shell[rsa]==0.4.4

@@ -1,0 +1,9 @@
+{
+  "enabled": true,
+  "url": "https://home-assistant.example.org",
+  "token": "YOUR_LONG_LIVED_ACCESS_TOKEN",
+  "entities": [
+    {"id": "sensor.living_room_temperature", "label": "Room", "unit": "°C"},
+    {"id": "sensor.outdoor_temperature", "label": "Outside", "unit": "°C"}
+  ]
+}

@@ -1,0 +1,3 @@
+<resources>
+    <string name="home_redirect_description">Opens Mero when Sony opens its original home screen. Only checks the home screen window name. Does not read screen content or capture remote keys.</string>
+</resources>
