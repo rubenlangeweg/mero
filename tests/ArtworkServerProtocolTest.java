@@ -30,6 +30,7 @@ public final class ArtworkServerProtocolTest {
         check(ArtworkServer.refreshesSession(read("POST /api/playback HTTP/1.1\r\nHost: tv\r\n\r\n")), "deliberate playback action renews authentication");
         check(ArtworkServer.refreshesSession(read("GET /api/backup HTTP/1.1\r\nHost: tv\r\n\r\n")), "deliberate backup download renews authentication");
         backupTransfer();
+        artveeImport();
         rejected("GET / HTTP/1.1\r\n\r\n", 400, "requires Host");
         rejected("GET / HTTP/1.0\r\nHost: 192.0.2.10:8787\r\n\r\n", 400, "rejects ambiguous HTTP version");
         rejected("GET http://evil.example/api/library HTTP/1.1\r\nHost: 192.0.2.10:8787\r\n\r\n", 400, "rejects absolute-form target");
@@ -95,6 +96,23 @@ public final class ArtworkServerProtocolTest {
             if (remaining != null) for (File file : remaining) file.delete();
             directory.delete();
         }
+    }
+
+    private static void artveeImport() {
+        check(ArtveeImport.pageUrl(" https://www.artvee.com/dl/tokaido-gojusantsugi-pl-50 ")
+                .equals("https://artvee.com/dl/tokaido-gojusantsugi-pl-50/"), "Artvee link is canonicalized");
+        for (String link : new String[]{"http://artvee.com/dl/a/", "https://artvee.com.evil.example/dl/a/",
+                "https://evilartvee.com/dl/a/", "https://user@artvee.com/dl/a/", "https://artvee.com:8443/dl/a/",
+                "https://artvee.com/artist/a/", "https://artvee.com/dl/a/b/", "https://artvee.com/dl/%2e%2e/", "file:///dl/a/"}) {
+            try { ArtveeImport.pageUrl(link); throw new AssertionError("Artvee import accepted " + link); }
+            catch (IllegalArgumentException expected) { checks++; }
+        }
+        ArtveeImport.Artwork work = ArtveeImport.parse("<h1 itemprop=\"name\" class=\"product_title entry-title\"><a href=\"x\">\n"
+                + "Bauernm&#228;dchen (Farm Girl) (1886) </a></h1><a href=\"https://mdl.artvee.com/sdl/1sdl.jpg?a=1&amp;b=2\">Download</a>");
+        check(work.title.equals("Bauernm\u00e4dchen (Farm Girl)") && work.year.equals("1886"), "Artvee title keeps inner parentheses and splits the date");
+        check(work.imageUrl.equals("https://mdl.artvee.com/sdl/1sdl.jpg?a=1&b=2"), "Artvee download link is decoded");
+        try { ArtveeImport.parse("<a href=\"https://mdl.artvee.com.evil.example/sdl/1.jpg\">"); throw new AssertionError("foreign download accepted"); }
+        catch (IllegalArgumentException expected) { checks++; }
     }
 
     private static ArtworkServer.Request read(String text) throws Exception {

@@ -190,7 +190,8 @@ final class ArtworkServer {
             Request request = readRequest(input);
             headerDeadline.cancel(false);
             requestDeadline = clock.schedule(() -> close(owned),
-                    request.path.equals("/api/restore") || request.path.equals("/api/backup") ? 180 : 60,
+                    request.path.equals("/api/restore") || request.path.equals("/api/backup") ? 180
+                            : request.path.endsWith("/import") ? 120 : 60,
                     TimeUnit.SECONDS);
             if (!isRunning()) throw new Failure(503, "The artwork manager is closed. Open it again on the TV.");
             if (!authorities.contains(request.headers.get("host"))) throw new Failure(403, "Open the address shown on the TV.");
@@ -330,6 +331,20 @@ final class ArtworkServer {
                     Map<String, String> query = query(request.query);
                     result.put("id", library.addWork(parts[3], query.getOrDefault("title", ""),
                             query.getOrDefault("year", ""), body(request, input, MAX_IMAGE)));
+                } finally { upload.release(); }
+                status = 201;
+                changed = true;
+            } else if (parts.length == 5 && parts[1].equals("api") && parts[2].equals("artists") && parts[4].equals("import")
+                    && request.method.equals("POST")) {
+                id(parts[3]);
+                String address = ArtveeImport.pageUrl(string(json(request, input), "url"));
+                if (!upload.tryAcquire()) throw new Failure(409, "Another image is uploading. Try again in a moment.");
+                try {
+                    ArtveeImport.Artwork artwork;
+                    try { artwork = ArtveeImport.fetch(address); }
+                    catch (IOException unreachable) { throw new Failure(502, "Could not download from Artvee. Check the TV's internet connection and try again."); }
+                    result.put("id", library.addWork(parts[3], artwork.title, artwork.year, artwork.image));
+                    result.put("title", artwork.title);
                 } finally { upload.release(); }
                 status = 201;
                 changed = true;

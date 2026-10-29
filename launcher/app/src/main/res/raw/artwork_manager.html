@@ -14,7 +14,7 @@
     button.primary { background:var(--ink); border-color:var(--ink); color:#fff; } button.primary:hover:not(:disabled) { background:#3b3e43; }
     button.quiet { background:transparent; border-color:transparent; } button.danger { color:var(--danger); } button.primary.danger { background:var(--danger); color:#fff; border-color:var(--danger); }
     :focus-visible { outline:2px solid var(--focus); }
-    input[type="text"],input[type="search"],select { width:100%; min-height:44px; padding:10px 11px; border:1px solid #ccd1d8; border-radius:8px; background:#fff; color:var(--ink); font-size:15px; }
+    input[type="text"],input[type="search"],input[type="url"],select { width:100%; min-height:44px; padding:10px 11px; border:1px solid #ccd1d8; border-radius:8px; background:#fff; color:var(--ink); font-size:15px; }
     input::placeholder { color:#6b7078; } input[type="checkbox"] { width:19px; height:19px; margin:0; accent-color:var(--ink); flex:none; }
     input[type="range"] { width:100%; min-height:36px; accent-color:var(--ink); touch-action:pan-y; }
     p { margin:0; line-height:1.55; } h1,h2,h3 { margin:0; text-wrap:balance; } .muted { color:var(--muted); }
@@ -43,7 +43,8 @@
     .status { font-size:13px; color:var(--muted); min-height:21px; margin:0 0 14px; } .status.error { color:var(--danger); } .connection-notice { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 15px; background:#f3f5f8; border-radius:10px; margin-bottom:20px; font-size:13px; }
     .dropzone { display:flex; align-items:center; justify-content:space-between; gap:18px; border:1px dashed #b6bfca; border-radius:12px; padding:18px 20px; background:#fafbfc; margin-bottom:25px; }
     .dropzone.dragging { border:2px solid var(--focus); padding:17px 19px; background:#f0f5fa; } .dropzone p { font-size:14px; font-weight:500; } .dropzone small { display:block; color:var(--muted); font-size:12px; line-height:1.5; margin-top:3px; }
-    .dropzone button { flex:none; } .upload-panel { margin:-7px 0 25px; padding:14px 16px; background:var(--sidebar); border-radius:10px; }
+    .dropzone button { flex:none; } .link-import { display:flex; gap:8px; margin:-12px 0 25px; } .link-import input { flex:1; min-width:0; } .link-import button { flex:none; }
+    .upload-panel { margin:-7px 0 25px; padding:14px 16px; background:var(--sidebar); border-radius:10px; }
     .upload-panel p { font-size:13px; } .upload-panel progress { display:block; width:100%; height:5px; margin:10px 0 3px; accent-color:var(--ink); }
     .upload-results { display:flex; flex-direction:column; gap:4px; list-style:none; padding:0; margin:8px 0 0; font-size:12px; color:var(--muted); overflow-wrap:anywhere; } .upload-results .failed { color:var(--danger); }
     .art-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:27px 22px; align-items:start; }
@@ -82,7 +83,7 @@
       .dropzone { padding:15px; gap:13px; } .dropzone.dragging { padding:14px; } .dropzone p { font-size:13px; } .dropzone small { font-size:11px; max-width:24ch; } .dropzone button { font-size:13px; padding:10px; }
       .art-grid { grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:25px; } .editor { width:calc(100% - 20px); padding:18px; max-height:calc(100svh - 20px); } .editor-fields { display:flex; gap:15px; }
       .editor-heading h2 { font-size:20px; } .editor-bottom { align-items:stretch; flex-direction:column-reverse; } .editor-primary button { flex:1; } .editor-bottom>.danger { align-self:flex-start; }
-      input[type="text"],input[type="search"],select { font-size:16px; } .preview-overlay { font-size:7px; } .preview-dock { width:28%; } dialog { padding:22px; } .connection-notice { align-items:flex-start; }
+      input[type="text"],input[type="search"],input[type="url"],select { font-size:16px; } .preview-overlay { font-size:7px; } .preview-dock { width:28%; } dialog { padding:22px; } .connection-notice { align-items:flex-start; }
     }
     @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; animation:none !important; transition:none !important; } }
   </style>
@@ -108,6 +109,7 @@
       <div class="library-toolbar"><input id="search" type="search" placeholder="Find artwork in this folder" aria-label="Find artwork in this folder"><div class="library-tools"><button id="undo" type="button" hidden>Undo last deletion</button><button id="tv-settings" type="button">TV settings & backup</button></div></div>
       <p class="status" id="status" role="status" aria-live="polite"></p>
       <section class="dropzone" id="dropzone" aria-label="Add artwork" hidden><div><p>Drop artwork into this folder</p><small>JPEG, PNG or WebP. Up to 16 MB per image.</small></div><button id="choose-images" type="button">Choose images</button><input type="file" id="files" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" multiple hidden></section>
+      <form class="link-import" id="import-form" hidden><input id="import-url" type="url" inputmode="url" autocomplete="off" maxlength="400" placeholder="Or paste an Artvee link, e.g. https://artvee.com/dl/…" aria-label="Artvee artwork link" required><button id="import-button" type="submit">Import</button></form>
       <section class="upload-panel" id="upload-panel" aria-label="Upload progress" hidden><p id="upload-status" aria-live="polite"></p><progress id="upload-progress" value="0" max="1" aria-label="Images uploaded"></progress><ul class="upload-results" id="upload-results"></ul></section>
       <div class="art-grid" id="artworks"></div>
       <section class="empty" id="empty" hidden><h2 id="empty-heading">This folder is ready for art.</h2><p id="empty-copy"></p><button id="empty-upload" class="primary" type="button">Choose images</button></section>
@@ -165,7 +167,7 @@
     function syncControls() {
       const blocked=!state.connected||state.uploading;
       for(const id of ['previous','next','pause']) $(id).disabled=blocked||state.playingBusy||!state.playback;
-      for(const id of ['undo','backup','restore','settings-save','choose-images','empty-upload','add-artist','rename-artist','delete-artist']) $(id).disabled=blocked;
+      for(const id of ['undo','backup','restore','settings-save','choose-images','empty-upload','add-artist','rename-artist','delete-artist','import-url','import-button']) $(id).disabled=blocked;
       $('files').disabled=blocked; $('disconnect').disabled=state.uploading;
       if(state.editor) { $('editor-show').disabled=blocked||state.editorBusy; $('editor-delete').disabled=blocked||state.editorBusy; const entry=editorEntry(); $('editor-save').disabled=blocked||state.editorBusy||!entry||equal(editorValues(),values(entry.work)); }
     }
@@ -208,7 +210,7 @@
     }
     function renderLibrary() {
       if(!state.library)return; renderFolders(); const artist=currentArtist(); const content=document.createDocumentFragment(); const query=$('search').value.trim().toLocaleLowerCase();
-      $('collection-actions').hidden=!artist; $('dropzone').hidden=!artist; $('search').hidden=!artist||!artist.works.length;
+      $('collection-actions').hidden=!artist; $('dropzone').hidden=!artist; $('import-form').hidden=!artist; $('search').hidden=!artist||!artist.works.length;
       const works=artist?artist.works.filter(work=>{const value=state.drafts.get(workKey(artist.id,work.id))||work; return (value.title+' '+value.year).toLocaleLowerCase().includes(query);}):[];
       $('empty').hidden=works.length>0;
       if(artist) { $('artist-heading').textContent=artist.name; updateSummary(artist); for(const work of works)content.append(renderWork(artist,work)); $('empty-heading').textContent=query?'No matching artworks.':'This folder is ready for art.'; $('empty-copy').textContent=query?'Try a different title or year.':'Choose images, then open an artwork to edit its title, year and TV framing.'; $('empty-upload').textContent='Choose images'; $('empty-upload').hidden=!!query; }
@@ -399,6 +401,13 @@
       try{await api('/api/restore',{method:'POST',body:file,raw:true,contentType:'application/zip',timeout:240000});state.drafts.clear();persistDrafts();state.artistId=null;await loadLibrary();$('rotation').value=String(state.library.intervalMinutes);$('art-mode').checked=state.library.artModeEnabled!==false;setMessage($('backup-status'),'Library restored.');status('Library restored from backup.');await refreshPlayback();}
       catch(error){if(!(error instanceof PairingRequired))setMessage($('backup-status'),error.message+' Reload the library before trying another restore.',true);}
       finally{state.uploading=false;document.body.classList.remove('uploading');$('settings-close').disabled=false;syncControls();}
+    });
+    $('import-form').addEventListener('submit',async event=>{
+      event.preventDefault(); const artist=currentArtist(); const url=$('import-url').value.trim(); if(!artist||!url||state.uploading||!state.connected)return;
+      state.uploading=true; document.body.classList.add('uploading'); syncControls(); $('import-button').textContent='Importing…'; status('Downloading from Artvee to your TV…');
+      try { const result=await api(artistPath(artist.id)+'/import',{method:'POST',body:{url},timeout:130000}); $('import-url').value=''; await loadLibrary(); status('“'+result.title+'” added. Open it to check its title, year and TV framing.'); }
+      catch(error) { if(!(error instanceof PairingRequired))status(error.message,true); }
+      finally { state.uploading=false; document.body.classList.remove('uploading'); $('import-button').textContent='Import'; syncControls(); }
     });
     $('files').addEventListener('change',event=>{if(state.connected)uploadFiles(Array.from(event.target.files));}); $('choose-images').addEventListener('click',()=>$('files').click()); $('empty-upload').addEventListener('click',()=>{if(currentArtist())$('files').click();else openArtistDialog('create');});
     let dragDepth=0;const dropzone=$('dropzone');dropzone.addEventListener('dragenter',event=>{event.preventDefault();dragDepth++;if(!state.uploading&&state.connected)dropzone.classList.add('dragging');});dropzone.addEventListener('dragover',event=>{event.preventDefault();if(event.dataTransfer)event.dataTransfer.dropEffect=state.uploading||!state.connected?'none':'copy';});dropzone.addEventListener('dragleave',event=>{event.preventDefault();dragDepth=Math.max(0,dragDepth-1);if(!dragDepth)dropzone.classList.remove('dragging');});dropzone.addEventListener('drop',event=>{event.preventDefault();dragDepth=0;dropzone.classList.remove('dragging');if(event.dataTransfer&&state.connected)uploadFiles(Array.from(event.dataTransfer.files));});
