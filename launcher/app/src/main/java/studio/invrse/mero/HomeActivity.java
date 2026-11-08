@@ -274,21 +274,35 @@ public final class HomeActivity extends Activity {
         LinearLayout caption = new LinearLayout(this);
         caption.setOrientation(LinearLayout.VERTICAL);
         caption.setPadding(dp(8), dp(5), dp(8), dp(5));
-        int captionWidth = Math.max(1, Math.min(dp(240),
-                (getResources().getDisplayMetrics().widthPixels - dockPosition.width) / 2 - dp(80)));
-        artworkArtist = text("", 9, 0xEDFFFFFF);
-        artworkTitle = text("", 8.5f, 0xD1FFFFFF);
-        artworkYear = text("", 8.5f, 0xD1FFFFFF);
+        artworkArtist = text("", 11, 0xEDFFFFFF);
+        artworkTitle = text("", 10, 0xD1FFFFFF);
+        artworkYear = text("", 9, 0xD1FFFFFF);
+        // Wrap each view so a new artwork can widen the card after rotation.
         for (TextView line : new TextView[]{artworkArtist, artworkTitle, artworkYear}) {
-            line.setSingleLine(true);
-            line.setEllipsize(TextUtils.TruncateAt.END);
-            line.setMaxWidth(captionWidth);
-            caption.addView(line);
+            caption.addView(line, new LinearLayout.LayoutParams(-2, -2));
         }
         artworkGlass.addView(caption, new FrameLayout.LayoutParams(-2, -2));
         FrameLayout.LayoutParams captionPosition = new FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM | Gravity.START);
-        captionPosition.setMargins(dp(48), 0, 0, dp(28));
+        captionPosition.setMarginStart(dp(48));
+        captionPosition.bottomMargin = dockPosition.bottomMargin;
         root.addView(artworkGlass, captionPosition);
+        root.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            int width = right - left;
+            if (width <= 0 || width == oldRight - oldLeft) return;
+            int inset = captionPosition.getMarginStart();
+            int padding = caption.getPaddingLeft() + caption.getPaddingRight();
+            int gap = dp(16);
+            int textWidth = (width - dockPosition.width) / 2 - inset - padding - gap;
+            // On narrow displays, use the space above the dock rather than squeezing the text.
+            boolean aboveDock = textWidth < dp(160);
+            if (aboveDock) textWidth = width - 2 * inset - padding;
+            int limit = Math.max(1, Math.min(dp(320), textWidth));
+            artworkArtist.setMaxWidth(limit);
+            artworkTitle.setMaxWidth(limit);
+            artworkYear.setMaxWidth(limit);
+            captionPosition.bottomMargin = dockPosition.bottomMargin + (aboveDock ? dockPosition.height + gap : 0);
+            artworkGlass.setLayoutParams(captionPosition);
+        });
         loadWallpaper();
         setContentView(root);
     }
